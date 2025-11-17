@@ -10,6 +10,7 @@ import SwiftData
 
 @Model
 final class Expense {
+    var id: UUID = UUID()
     var amount: Double
     var currency: String
     var date: Date
@@ -26,17 +27,9 @@ final class Expense {
     var aiDetectionDate: Date? = nil // AI辨識的日期時間
     var isManuallyVerified: Bool = false // 使用者是否手動修正過AI辨識結果
     
-    // === 關聯 ===
-    @Relationship(deleteRule: .nullify)
     var trip: Trip?
-    
     var category: String? = nil
-    
-    // === 計算屬性 ===
-    var isReadyToSave: Bool {
-        return isAIProcessed && isManuallyVerified && amount > 0
-    }
-    
+       
     init(amount: Double, currency: String = "TWD", date: Date, storeName: String? = nil, itemName: String? = nil, itemQuantity: Int? = nil, notes: String? = nil, receiptImage: Data? = nil, trip: Trip? = nil, category: String? = nil) {
         self.amount = amount
         self.currency = currency
@@ -48,5 +41,12 @@ final class Expense {
         self.receiptImage = receiptImage
         self.trip = trip
         self.category = category
+    }
+}
+
+    // === 在 @Model 外面定義計算屬性 ===
+extension Expense {
+    var isReadyToSave: Bool {
+        return isAIProcessed && isManuallyVerified && amount > 0
     }
 }

@@ -9,7 +9,10 @@ import SwiftUI
 import SwiftData
 
 struct TripListView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query private var trips: [Trip]
+    @State private var showingAddTrip = false
+    
     
     var body: some View {
         List(trips) { trip in
