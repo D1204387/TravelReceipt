@@ -21,7 +21,7 @@ struct TravelReceiptApp: App {
             schema: schema,
             isStoredInMemoryOnly: false,
 //            groupContainer: .identifier("group.com.buildwithharry.TravelReceipt"),
-//            cloudKitDatabase: .private("iCloud.com.buildwithharry.TravelReceipt")
+            cloudKitDatabase: .private("iCloud.com.buildwithharry.TravelReceipt")
         )
         
         do {
