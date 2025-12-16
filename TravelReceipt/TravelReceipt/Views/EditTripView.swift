@@ -1,27 +1,28 @@
-    //
-    //  AddTripView.swift
-    //  TravelReceipt
-    //
-    //  Created by YiJou on 2025/11/14.
-    //
+//
+//  EditTripView.swift
+//  TravelReceipt
+//
+//  Created by YiJou  on 2025/12/16.
+//
 
 import SwiftUI
 import SwiftData
-import SwiftDate
 
-struct AddTripView: View {
+struct EditTripView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    
+    @Bindable var trip: Trip
     
         // MARK: - Form State
     @State private var name: String = ""
     @State private var destination: String = ""
     @State private var startDate: Date = Date()
-    @State private var endDate: Date = Date()  // ✅ 預設同一天（允許一日行程）
+    @State private var endDate: Date = Date()
     @State private var budgetString: String = ""
     @State private var notes: String = ""
     
-        // ✅ 修正驗證：只比較日期，忽略時間
+        // 驗證
     private var isValid: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty &&
         !destination.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -41,7 +42,6 @@ struct AddTripView: View {
                 Section {
                     DatePicker("開始日期", selection: $startDate, displayedComponents: .date)
                         .onChange(of: startDate) { oldValue, newValue in
-                                // ✅ 如果開始日期晚於結束日期，自動調整結束日期
                             if Calendar.current.compare(newValue, to: endDate, toGranularity: .day) == .orderedDescending {
                                 endDate = newValue
                             }
@@ -49,7 +49,6 @@ struct AddTripView: View {
                     
                     DatePicker("結束日期", selection: $endDate, displayedComponents: .date)
                         .onChange(of: endDate) { oldValue, newValue in
-                                // ✅ 如果結束日期早於開始日期，自動調整開始日期
                             if Calendar.current.compare(newValue, to: startDate, toGranularity: .day) == .orderedAscending {
                                 startDate = newValue
                             }
@@ -60,7 +59,7 @@ struct AddTripView: View {
                     Text("開始與結束日期可設為同一天（一日行程）")
                 }
                 
-                    // MARK: - 預算（選填）
+                    // MARK: - 預算
                 Section {
                     HStack {
                         TextField("預算金額", text: $budgetString)
@@ -74,13 +73,13 @@ struct AddTripView: View {
                     Text("選填，可用於追蹤支出進度")
                 }
                 
-                    // MARK: - 備註（選填）
+                    // MARK: - 備註
                 Section("備註") {
                     TextField("備註（選填）", text: $notes, axis: .vertical)
                         .lineLimit(3...5)
                 }
             }
-            .navigationTitle("新增行程")
+            .navigationTitle("編輯行程")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -91,39 +90,58 @@ struct AddTripView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("儲存") {
-                        saveTrip()
+                        saveChanges()
                     }
                     .disabled(!isValid)
                 }
             }
+            .onAppear {
+                loadTripData()
+            }
         }
     }
     
-        // MARK: - Save Method
-    private func saveTrip() {
-        let budget: Double? = Double(budgetString)
-        
-            // ✅ 標準化日期（設為當天開始，避免時間問題）
+        // MARK: - Load Data
+    private func loadTripData() {
+        name = trip.name
+        destination = trip.destination ?? ""
+        startDate = trip.startDate
+        endDate = trip.endDate
+        if let budget = trip.totalBudget {
+            budgetString = String(format: "%.0f", budget)
+        }
+        notes = trip.notes ?? ""
+    }
+    
+        // MARK: - Save Changes
+    private func saveChanges() {
         let calendar = Calendar.current
-        let normalizedStart = calendar.startOfDay(for: startDate)
-        let normalizedEnd = calendar.startOfDay(for: endDate)
         
-        let trip = Trip(
-            name: name.trimmingCharacters(in: .whitespaces),
-            destination: destination.trimmingCharacters(in: .whitespaces),
-            startDate: normalizedStart,
-            endDate: normalizedEnd,
-            totalBudget: budget,
-            notes: notes.isEmpty ? nil : notes
-        )
+        trip.name = name.trimmingCharacters(in: .whitespaces)
+        trip.destination = destination.trimmingCharacters(in: .whitespaces)
+        trip.startDate = calendar.startOfDay(for: startDate)
+        trip.endDate = calendar.startOfDay(for: endDate)
+        trip.totalBudget = Double(budgetString)
+        trip.notes = notes.isEmpty ? nil : notes
         
-        modelContext.insert(trip)
         dismiss()
     }
 }
 
     // MARK: - Preview
 #Preview {
-    AddTripView()
-        .modelContainer(for: [Trip.self, Expense.self], inMemory: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Trip.self, Expense.self, configurations: config)
+    
+    let trip = Trip(
+        name: "東京出差",
+        destination: "東京",
+        startDate: Date(),
+        endDate: Date().addingTimeInterval(86400 * 3),
+        totalBudget: 50000
+    )
+    container.mainContext.insert(trip)
+    
+    return EditTripView(trip: trip)
+        .modelContainer(container)
 }

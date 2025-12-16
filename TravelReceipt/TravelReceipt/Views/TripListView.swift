@@ -1,16 +1,18 @@
-//
-//  TripListView.swift
-//  TravelReceipt
-//
-//  Created by YiJou  on 2025/11/14.
-//
+    //
+    //  TripListView.swift
+    //  TravelReceipt
+    //
+    //  Created by YiJou on 2025/11/14.
+    //
 
 import SwiftUI
 import SwiftData
 
 struct TripListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var trips: [Trip]
+    @Query(sort: \Trip.startDate, order: .reverse) private var trips: [Trip]
+    
+    @State private var tripToEdit: Trip? = nil
     
     var body: some View {
         List {
@@ -18,18 +20,30 @@ struct TripListView: View {
                 NavigationLink(destination: TripDetailView(trip: trip)) {
                     TripRowView(trip: trip)
                 }
+                    // ✅ 加入右滑選單
+                .swipeActions(edge: .leading) {
+                    Button {
+                        tripToEdit = trip
+                    } label: {
+                        Label("編輯", systemImage: "pencil")
+                    }
+                    .tint(.blue)
+                }
             }
             .onDelete(perform: deleteTrips)
+        }
+        .sheet(item: $tripToEdit) { trip in
+            EditTripView(trip: trip)
         }
     }
     
     private func deleteTrips(at offsets: IndexSet) {
-        let sortedTrips = trips.sorted(by: { $0.startDate > $1.startDate })
         for index in offsets {
-            let toDelete = sortedTrips[index]
-            modelContext.delete(toDelete)
-        }    }
+            modelContext.delete(trips[index])
+        }
+    }
 }
+
     // MARK: - Trip Row View
 struct TripRowView: View {
     let trip: Trip
@@ -55,6 +69,7 @@ struct TripRowView: View {
     }
 }
 
+    // MARK: - Preview
 #Preview {
     NavigationStack {
         TripListView()

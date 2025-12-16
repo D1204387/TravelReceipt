@@ -27,7 +27,7 @@ enum ExpenseCategory: String, Codable, CaseIterable {
     
     var icon: String {
         switch self {
-        case .transport: return "✈️"
+        case .transport: return "🚌"
         case .lodging: return "🏨"
         case .food: return "🍽️"
         case .telecom: return "📱"
@@ -37,9 +37,12 @@ enum ExpenseCategory: String, Codable, CaseIterable {
     
     var color: Color {
         switch self {
-        case .transport, .lodging: return .blue
-        case .food, .telecom: return .orange
+        case .transport: return .blue
+        case .lodging: return .purple
+        case .food: return .orange
+        case .telecom: return .green
         case .miscellaneous: return .gray
+            
         }
     }
 }

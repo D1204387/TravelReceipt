@@ -17,7 +17,9 @@ struct SettingsView: View {
     @State private var defaultCurrency: String = "TWD"
     @State private var showingDeleteAlert = false
     @State private var showingExportSheet = false
-    @State private var exportMessage: String = ""
+    @State private var showingSeedAlert = false
+    @State private var seedAlertMessage = ""
+    @State private var seedNeedsConfirm = false
     
         // 常用貨幣
     private let currencies = ["TWD", "CNY", "JPY", "USD", "EUR", "HKD", "KRW"]
@@ -63,18 +65,10 @@ struct SettingsView: View {
             Section("關於") {
                 LabeledContent("版本", value: "1.0.0")
                 LabeledContent("開發者", value: "YiJou")
-                
-                Link(destination: URL(string: "https://github.com")!) {
-                    HStack {
-                        Text("GitHub")
-                        Spacer()
-                        Image(systemName: "arrow.up.right.square")
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
         }
         .navigationTitle("設定")
+            // 清除資料 Alert
         .alert("確認清除", isPresented: $showingDeleteAlert) {
             Button("取消", role: .cancel) { }
             Button("清除", role: .destructive) {
@@ -82,6 +76,19 @@ struct SettingsView: View {
             }
         } message: {
             Text("確定要清除所有行程和費用資料嗎？此操作無法復原。")
+        }
+            // 載入範例 Alert
+        .alert("載入範例資料", isPresented: $showingSeedAlert) {
+            if seedNeedsConfirm {
+                Button("取消", role: .cancel) { }
+                Button("新增") {
+                    performSeed()
+                }
+            } else {
+                Button("確定", role: .cancel) { }
+            }
+        } message: {
+            Text(seedAlertMessage)
         }
         .sheet(isPresented: $showingExportSheet) {
             ExportView(expenses: expenses)
@@ -99,18 +106,29 @@ struct SettingsView: View {
     }
     
     private func deleteAllData() {
-            // 先刪除費用
         for expense in expenses {
             modelContext.delete(expense)
         }
-            // 再刪除行程
         for trip in trips {
             modelContext.delete(trip)
         }
     }
     
     private func seedSampleData() {
-        SampleDataSeeder.seedIfNeeded(context: modelContext)
+        if !trips.isEmpty {
+            seedAlertMessage = "已有 \(trips.count) 筆行程，是否仍要新增範例資料？"
+            seedNeedsConfirm = true
+            showingSeedAlert = true
+        } else {
+            performSeed()
+        }
+    }
+    
+    private func performSeed() {
+        _ = SampleDataSeeder.seedSampleData(context: modelContext)
+        seedAlertMessage = "✅ 範例資料已載入"
+        seedNeedsConfirm = false
+        showingSeedAlert = true
     }
 }
 
@@ -175,10 +193,8 @@ struct ExportView: View {
     }
     
     private func exportCSV() {
-            // CSV 標頭
         var csv = "日期,分類,商家,金額,貨幣,行程,備註\n"
         
-            // 資料列
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         
@@ -194,7 +210,6 @@ struct ExportView: View {
             csv += "\(date),\(category),\(store),\(amount),\(currency),\(tripName),\(notes)\n"
         }
         
-            // 儲存到暫存目錄
         let fileName = "TravelReceipt_\(Date().formatted(.dateTime.year().month().day())).csv"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         
@@ -209,7 +224,7 @@ struct ExportView: View {
     }
 }
 
-    // MARK: - Share Sheet (UIKit Bridge)
+    // MARK: - Share Sheet
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
     

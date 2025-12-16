@@ -40,13 +40,28 @@ struct StatisticsView: View {
         }
     }
     
-        // 按日期統計（每日支出）
-    private var dailyData: [(date: Date, amount: Double)] {
+        // ✅ 每日分類支出資料（用於堆疊圖）
+    private var dailyCategoryData: [DailyExpense] {
+        var result: [DailyExpense] = []
+        
+            // 按日期分組
         let grouped = Dictionary(grouping: filteredExpenses) { expense in
             Calendar.current.startOfDay(for: expense.date)
         }
-        return grouped.map { (date: $0.key, amount: $0.value.reduce(0) { $0 + $1.amount }) }
-            .sorted { $0.date < $1.date }
+        
+            // 每個日期、每個分類計算總額
+        for (date, dayExpenses) in grouped {
+            for category in ExpenseCategory.allCases {
+                let amount = dayExpenses
+                    .filter { $0.category == category }
+                    .reduce(0) { $0 + $1.amount }
+                if amount > 0 {
+                    result.append(DailyExpense(date: date, category: category, amount: amount))
+                }
+            }
+        }
+        
+        return result.sorted { $0.date < $1.date }
     }
     
     var body: some View {
@@ -63,9 +78,9 @@ struct StatisticsView: View {
                     categoryChart
                 }
                 
-                    // MARK: - 每日支出圖表
-                if !dailyData.isEmpty {
-                    dailyChart
+                    // MARK: - 每日支出圖表（堆疊）
+                if !dailyCategoryData.isEmpty {
+                    dailyStackedChart
                 }
                 
                     // MARK: - 分類明細
@@ -134,26 +149,48 @@ struct StatisticsView: View {
                 .cornerRadius(4)
             }
             .frame(height: 200)
+            
+                // ✅ 圖例
+            legendView
         }
         .padding()
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
-        // MARK: - 每日支出長條圖
-    private var dailyChart: some View {
+        // ✅ 圖例
+    private var legendView: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 8) {
+            ForEach(categoryData, id: \.category) { item in
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(item.category.color)
+                        .frame(width: 10, height: 10)
+                    Text(item.category.displayName)
+                        .font(.caption)
+                }
+            }
+        }
+    }
+    
+        // ✅ 每日支出堆疊長條圖
+    private var dailyStackedChart: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("每日支出")
                 .font(.headline)
             
-            Chart(dailyData, id: \.date) { item in
+            Chart(dailyCategoryData) { item in
                 BarMark(
                     x: .value("日期", item.date, unit: .day),
                     y: .value("金額", item.amount)
                 )
-                .foregroundStyle(.blue.gradient)
+                .foregroundStyle(by: .value("分類", item.category.displayName))
                 .cornerRadius(4)
             }
+            .chartForegroundStyleScale(
+                domain: ExpenseCategory.allCases.map { $0.displayName },
+                range: ExpenseCategory.allCases.map { $0.color }
+            )
             .frame(height: 200)
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day)) { _ in
@@ -167,6 +204,17 @@ struct StatisticsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
+        // ✅ 分類顏色對應
+    private var categoryColorMapping: KeyValuePairs<String, Color> {
+        return [
+            ExpenseCategory.transport.displayName: ExpenseCategory.transport.color,
+            ExpenseCategory.lodging.displayName: ExpenseCategory.lodging.color,
+            ExpenseCategory.food.displayName: ExpenseCategory.food.color,
+            ExpenseCategory.telecom.displayName: ExpenseCategory.telecom.color,
+            ExpenseCategory.miscellaneous.displayName: ExpenseCategory.miscellaneous.color
+        ]
+    }
+    
         // MARK: - 分類明細列表
     private var categoryDetail: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -175,7 +223,11 @@ struct StatisticsView: View {
             
             ForEach(categoryData, id: \.category) { item in
                 HStack {
+                        // ✅ 顏色圓點 + 圖示 + 名稱
                     HStack(spacing: 8) {
+                        Circle()
+                            .fill(item.category.color)
+                            .frame(width: 12, height: 12)
                         Text(item.category.icon)
                         Text(item.category.displayName)
                     }
@@ -214,12 +266,19 @@ struct StatisticsView: View {
     }
 }
 
+    // ✅ 每日分類支出資料結構
+struct DailyExpense: Identifiable {
+    let id = UUID()
+    let date: Date
+    let category: ExpenseCategory
+    let amount: Double
+}
+
     // MARK: - Preview
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Trip.self, Expense.self, configurations: config)
     
-        // 建立測試資料
     let trip = Trip(
         name: "東京出差",
         destination: "東京",

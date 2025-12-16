@@ -10,12 +10,22 @@ import SwiftData
 
 struct TripDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    let trip: Trip
-    @State private var showingAddExpense = false
+    @Bindable var trip: Trip
     
-        // 取得該行程的費用，按日期排序
+    @State private var showingAddExpense = false
+    @State private var showingEditTrip = false
+    @State private var expenseToEdit: Expense? = nil
+    
+    @Query private var allExpenses: [Expense]
+    
     private var sortedExpenses: [Expense] {
-        (trip.expenses ?? []).sorted { $0.date > $1.date }
+        allExpenses
+            .filter { $0.trip?.id == trip.id }
+            .sorted { $0.date > $1.date }
+    }
+    
+    private var totalExpenses: Double {
+        sortedExpenses.reduce(0) { $0 + $1.amount }
     }
     
     var body: some View {
@@ -39,11 +49,11 @@ struct TripDetailView: View {
             
                 // MARK: - 統計摘要
             Section("統計摘要") {
-                LabeledContent("總支出", value: formatAmount(trip.totalExpenses) + " 元")
-                LabeledContent("費用筆數", value: "\(trip.expenses?.count ?? 0) 筆")
+                LabeledContent("總支出", value: formatAmount(totalExpenses) + " 元")
+                LabeledContent("費用筆數", value: "\(sortedExpenses.count) 筆")
                 
                 if let budget = trip.totalBudget, budget > 0 {
-                    let remaining = budget - trip.totalExpenses
+                    let remaining = budget - totalExpenses
                     LabeledContent("剩餘預算") {
                         Text(formatAmount(remaining) + " 元")
                             .foregroundStyle(remaining >= 0 ? .green : .red)
@@ -71,7 +81,7 @@ struct TripDetailView: View {
             }
             
                 // MARK: - 費用明細
-            Section("費用明細") {
+            Section {
                 if sortedExpenses.isEmpty {
                     ContentUnavailableView {
                         Label("尚無費用", systemImage: "receipt")
@@ -81,8 +91,26 @@ struct TripDetailView: View {
                 } else {
                     ForEach(sortedExpenses) { expense in
                         ExpenseRowView(expense: expense)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                expenseToEdit = expense
+                            }
+                            .swipeActions(edge: .leading) {
+                                Button {
+                                    expenseToEdit = expense
+                                } label: {
+                                    Label("編輯", systemImage: "pencil")
+                                }
+                                .tint(.blue)
+                            }
                     }
                     .onDelete(perform: deleteExpenses)
+                }
+            } header: {
+                Text("費用明細")
+            } footer: {
+                if !sortedExpenses.isEmpty {
+                    Text("點擊費用可編輯，左滑刪除，右滑快速編輯")
                 }
             }
         }
@@ -90,13 +118,26 @@ struct TripDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showingAddExpense = true }) {
-                    Image(systemName: "plus")
+                Menu {
+                    Button(action: { showingEditTrip = true }) {
+                        Label("編輯行程", systemImage: "pencil")
+                    }
+                    Button(action: { showingAddExpense = true }) {
+                        Label("新增費用", systemImage: "plus")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
         }
         .sheet(isPresented: $showingAddExpense) {
             AddExpenseView(trip: trip)
+        }
+        .sheet(isPresented: $showingEditTrip) {
+            EditTripView(trip: trip)
+        }
+        .sheet(item: $expenseToEdit) { expense in
+            EditExpenseView(expense: expense)
         }
     }
     
@@ -112,8 +153,8 @@ struct TripDetailView: View {
     }
     
     private func deleteExpenses(at offsets: IndexSet) {
-        for index in offsets {
-            let expense = sortedExpenses[index]
+        let expensesToDelete = offsets.map { sortedExpenses[$0] }
+        for expense in expensesToDelete {
             modelContext.delete(expense)
         }
     }
@@ -125,11 +166,9 @@ struct ExpenseRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-                // 分類圖示
             Text(expense.category.icon)
                 .font(.title2)
             
-                // 資訊
             VStack(alignment: .leading, spacing: 2) {
                 Text(expense.storeName ?? "未知商家")
                     .font(.subheadline)
@@ -146,7 +185,6 @@ struct ExpenseRowView: View {
             
             Spacer()
             
-                // 金額
             VStack(alignment: .trailing) {
                 Text(String(format: "%.0f", expense.amount))
                     .font(.subheadline)

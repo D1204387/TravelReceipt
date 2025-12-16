@@ -1,5 +1,5 @@
     //
-    //  AddExpenseView.swift
+    //  EditExpenseView.swift
     //  TravelReceipt
     //
     //  Created by YiJou on 2025/11/14.
@@ -8,11 +8,11 @@
 import SwiftUI
 import SwiftData
 
-struct AddExpenseView: View {
+struct EditExpenseView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    let trip: Trip
+    @Bindable var expense: Expense
     
         // MARK: - Form State
     @State private var amount: String = ""
@@ -25,7 +25,7 @@ struct AddExpenseView: View {
         // 常用貨幣
     private let currencies = ["TWD", "CNY", "JPY", "USD", "EUR", "HKD", "KRW"]
     
-        // 驗證：金額必須大於 0
+        // 驗證
     private var isValid: Bool {
         guard let value = Double(amount), value > 0 else {
             return false
@@ -36,7 +36,7 @@ struct AddExpenseView: View {
     var body: some View {
         NavigationStack {
             Form {
-                    // MARK: - 金額區塊
+                    // MARK: - 金額
                 Section("金額") {
                     HStack {
                         TextField("輸入金額", text: $amount)
@@ -53,7 +53,7 @@ struct AddExpenseView: View {
                     }
                 }
                 
-                    // MARK: - 分類區塊
+                    // MARK: - 分類
                 Section("分類") {
                     Picker("選擇分類", selection: $category) {
                         ForEach(ExpenseCategory.allCases, id: \.self) { cat in
@@ -77,7 +77,7 @@ struct AddExpenseView: View {
                         .lineLimit(3...5)
                 }
             }
-            .navigationTitle("新增費用")
+            .navigationTitle("編輯費用")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -88,32 +88,37 @@ struct AddExpenseView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("儲存") {
-                        saveExpense()
+                        saveChanges()
                     }
                     .disabled(!isValid)
                 }
             }
+            .onAppear {
+                loadExpenseData()
+            }
         }
     }
     
-        // MARK: - Save Method
-    private func saveExpense() {
+        // MARK: - Load Data
+    private func loadExpenseData() {
+        amount = String(format: "%.0f", expense.amount)
+        currency = expense.currency ?? "TWD"
+        date = expense.date
+        category = expense.category
+        storeName = expense.storeName ?? ""
+        notes = expense.notes ?? ""
+    }
+    
+        // MARK: - Save Changes
+    private func saveChanges() {
         guard let amountValue = Double(amount) else { return }
         
-        let expense = Expense(
-            amount: amountValue,
-            currency: currency,
-            date: date,
-            storeName: storeName.isEmpty ? nil : storeName,
-            notes: notes.isEmpty ? nil : notes,
-            trip: trip,
-            category: category
-        )
-        
-        modelContext.insert(expense)
-        
-            // 加入到 trip 的 expenses
-        trip.addExpense(expense)
+        expense.amount = amountValue
+        expense.currency = currency
+        expense.date = date
+        expense.category = category
+        expense.storeName = storeName.isEmpty ? nil : storeName
+        expense.notes = notes.isEmpty ? nil : notes
         
         dismiss()
     }
@@ -124,14 +129,15 @@ struct AddExpenseView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Trip.self, Expense.self, configurations: config)
     
-    let trip = Trip(
-        name: "測試行程",
-        destination: "東京",
-        startDate: Date(),
-        endDate: Date().addingTimeInterval(86400 * 3)
+    let expense = Expense(
+        amount: 1500,
+        currency: "TWD",
+        date: Date(),
+        storeName: "測試商家",
+        category: .food
     )
-    container.mainContext.insert(trip)
+    container.mainContext.insert(expense)
     
-    return AddExpenseView(trip: trip)
+    return EditExpenseView(expense: expense)
         .modelContainer(container)
 }
