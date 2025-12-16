@@ -166,13 +166,24 @@ struct ExpenseRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
+                // 分類圖示
             Text(expense.category.icon)
                 .font(.title2)
             
+                // 資訊
             VStack(alignment: .leading, spacing: 2) {
-                Text(expense.storeName ?? "未知商家")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                HStack(spacing: 4) {
+                    Text(expense.storeName ?? "未知商家")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                        // ✅ 有收據照片時顯示圖示
+                    if expense.receiptImage != nil {
+                        Image(systemName: "paperclip")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
+                }
                 
                 HStack(spacing: 4) {
                     Text(expense.category.displayName)
@@ -185,6 +196,7 @@ struct ExpenseRowView: View {
             
             Spacer()
             
+                // 金額
             VStack(alignment: .trailing) {
                 Text(String(format: "%.0f", expense.amount))
                     .font(.subheadline)

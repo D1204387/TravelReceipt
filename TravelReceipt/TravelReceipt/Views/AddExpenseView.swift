@@ -22,10 +22,16 @@ struct AddExpenseView: View {
     @State private var storeName: String = ""
     @State private var notes: String = ""
     
+        // ✅ 收據圖片
+    @State private var receiptImage: UIImage? = nil
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
+    @State private var showingPhotoSource = false
+    
         // 常用貨幣
     private let currencies = ["TWD", "CNY", "JPY", "USD", "EUR", "HKD", "KRW"]
     
-        // 驗證：金額必須大於 0
+        // 驗證
     private var isValid: Bool {
         guard let value = Double(amount), value > 0 else {
             return false
@@ -33,7 +39,7 @@ struct AddExpenseView: View {
         return true
     }
     
-        // ✅ 檢查日期是否在行程範圍內
+        // 檢查日期是否在行程範圍內
     private var isDateOutOfRange: Bool {
         let calendar = Calendar.current
         let expenseDay = calendar.startOfDay(for: date)
@@ -45,7 +51,53 @@ struct AddExpenseView: View {
     var body: some View {
         NavigationStack {
             Form {
-                    // MARK: - 金額區塊
+                    // MARK: - 收據照片
+                Section {
+                    HStack {
+                            // 縮圖預覽
+                        if let image = receiptImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 80, height: 80)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 80, height: 80)
+                                .overlay {
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "camera")
+                                            .font(.title2)
+                                        Text("新增")
+                                            .font(.caption)
+                                    }
+                                    .foregroundStyle(.gray)
+                                }
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(spacing: 12) {
+                            Button(action: { showingPhotoSource = true }) {
+                                Label("拍照/選擇", systemImage: "photo.badge.plus")
+                            }
+                            
+                            if receiptImage != nil {
+                                Button(role: .destructive, action: { receiptImage = nil }) {
+                                    Label("移除照片", systemImage: "trash")
+                                }
+                                .foregroundStyle(.red)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("收據照片")
+                } footer: {
+                    Text("選填，可拍照或從相簿選取收據")
+                }
+                
+                    // MARK: - 金額
                 Section("金額") {
                     HStack {
                         TextField("輸入金額", text: $amount)
@@ -62,7 +114,7 @@ struct AddExpenseView: View {
                     }
                 }
                 
-                    // MARK: - 分類區塊
+                    // MARK: - 分類
                 Section("分類") {
                     Picker("選擇分類", selection: $category) {
                         ForEach(ExpenseCategory.allCases, id: \.self) { cat in
@@ -77,7 +129,6 @@ struct AddExpenseView: View {
                 Section {
                     DatePicker("日期", selection: $date, displayedComponents: .date)
                     
-                        // ✅ 日期超出範圍時顯示警告
                     if isDateOutOfRange {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -114,6 +165,25 @@ struct AddExpenseView: View {
                     .disabled(!isValid)
                 }
             }
+                // 選擇照片來源
+            .confirmationDialog("選擇照片來源", isPresented: $showingPhotoSource) {
+                Button("拍照") {
+                    showingCamera = true
+                }
+                Button("從相簿選擇") {
+                    showingImagePicker = true
+                }
+                Button("取消", role: .cancel) { }
+            }
+                // 相機
+            .fullScreenCover(isPresented: $showingCamera) {
+                CameraPicker(image: $receiptImage)
+                    .ignoresSafeArea()
+            }
+                // 相簿
+            .sheet(isPresented: $showingImagePicker) {
+                PhotoPicker(image: $receiptImage)
+            }
         }
     }
     
@@ -121,12 +191,19 @@ struct AddExpenseView: View {
     private func saveExpense() {
         guard let amountValue = Double(amount) else { return }
         
+            // ✅ 壓縮圖片並轉換為 Data
+        var imageData: Data? = nil
+        if let image = receiptImage {
+            imageData = image.jpegData(compressionQuality: 0.7)
+        }
+        
         let expense = Expense(
             amount: amountValue,
             currency: currency,
             date: date,
             storeName: storeName.isEmpty ? nil : storeName,
             notes: notes.isEmpty ? nil : notes,
+            receiptImage: imageData,
             trip: trip,
             category: category
         )
