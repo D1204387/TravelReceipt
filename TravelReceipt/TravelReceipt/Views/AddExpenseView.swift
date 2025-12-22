@@ -34,7 +34,7 @@ struct AddExpenseView: View {
     @State private var ocrResult: OCRResult? = nil
     
         // 常用貨幣
-    private let currencies = ["TWD", "CNY", "JPY", "USD", "EUR", "HKD", "KRW"]
+    private let currencies = Constants.Currency.all
     
         // 驗證
     private var isValid: Bool {

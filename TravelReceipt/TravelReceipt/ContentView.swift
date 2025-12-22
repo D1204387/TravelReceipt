@@ -70,7 +70,7 @@ struct EmptyStateView: View {
                     .padding(.horizontal)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.systemBackground))
+            .background(.background)
         }
     }
     

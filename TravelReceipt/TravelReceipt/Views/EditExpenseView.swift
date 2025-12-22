@@ -31,7 +31,7 @@ struct EditExpenseView: View {
     @State private var imageWasRemoved = false
     
         // 常用貨幣
-    private let currencies = ["TWD", "CNY", "JPY", "USD", "EUR", "HKD", "KRW"]
+    private let currencies = Constants.Currency.all
     
         // 驗證
     private var isValid: Bool {
@@ -242,7 +242,7 @@ struct EditExpenseView: View {
         // MARK: - Load Data
     private func loadExpenseData() {
         amount = String(format: "%.0f", expense.amount)
-        currency = expense.currency ?? "TWD"
+        currency = expense.currency
         date = expense.date
         category = expense.category
         storeName = expense.storeName ?? ""

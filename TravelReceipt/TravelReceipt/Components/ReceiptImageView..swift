@@ -60,7 +60,7 @@ struct ReceiptImageView: View {
                         .frame(width: geometry.size.width, height: geometry.size.height)
                 }
             }
-            .background(Color.black)
+            .background(.black)
             .navigationTitle("收據照片")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

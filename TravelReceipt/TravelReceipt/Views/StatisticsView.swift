@@ -1,6 +1,6 @@
     //
-    //  StatisticsView.swift
-    //  TravelReceipt
+    //  StatisticsView.swift - 修復版
+    //  正確轉換貨幣和顯示幣別
     //
     //  Created by YiJou on 2025/11/14.
     //
@@ -15,7 +15,7 @@ struct StatisticsView: View {
     @Query private var expenses: [Expense]
     
         // 篩選狀態
-    @State private var selectedTrip: Trip? = nil
+    @State private var selectedTrip: Trip?
     
         // 篩選後的費用
     private var filteredExpenses: [Expense] {
@@ -25,36 +25,86 @@ struct StatisticsView: View {
         return expenses
     }
     
-        // 總支出
+        // ✅ 修復 1：正確轉換貨幣的總支出
     private var totalAmount: Double {
-        filteredExpenses.reduce(0) { $0 + $1.amount }
+        guard let trip = selectedTrip else {
+                // 如果沒有選擇行程，計算所有費用（使用 TWD）
+            return filteredExpenses.reduce(0) { $0 + $1.amount }
+        }
+        
+            // 轉換成主幣後加總
+        return filteredExpenses.reduce(0) { sum, expense in
+            let exchangeRate = Double(trip.exchangeRates[expense.currency] ?? 1.0)
+            let convertedAmount = expense.amount * exchangeRate
+            return sum + convertedAmount
+        }
     }
     
-        // 按分類統計
+        // ✅ 獲取主幣貨幣代碼
+    private var primaryCurrency: String {
+        selectedTrip?.primaryCurrency ?? "TWD"
+    }
+    
+        // 按分類統計（已轉換）
     private var categoryData: [(category: ExpenseCategory, amount: Double)] {
-        ExpenseCategory.allCases.compactMap { category in
+        guard let trip = selectedTrip else {
+                // 如果沒選行程，用原始金額
+            return ExpenseCategory.allCases.compactMap { category in
+                let amount = filteredExpenses
+                    .filter { $0.category == category }
+                    .reduce(0) { $0 + $1.amount }
+                return amount > 0 ? (category, amount) : nil
+            }
+        }
+        
+            // 轉換後的分類統計
+        return ExpenseCategory.allCases.compactMap { category in
             let amount = filteredExpenses
                 .filter { $0.category == category }
-                .reduce(0) { $0 + $1.amount }
+                .reduce(0) { sum, expense in
+                    let exchangeRate = Double(trip.exchangeRates[expense.currency] ?? 1.0)
+                    return sum + (expense.amount * exchangeRate)
+                }
             return amount > 0 ? (category, amount) : nil
         }
     }
     
-        // ✅ 每日分類支出資料（用於堆疊圖）
+        // ✅ 每日分類支出資料（用於堆疊圖，已轉換）
     private var dailyCategoryData: [DailyExpense] {
         var result: [DailyExpense] = []
         
-            // 按日期分組
+        guard let trip = selectedTrip else {
+                // 如果沒選行程，用原始資料
+            let grouped = Dictionary(grouping: filteredExpenses) { expense in
+                Calendar.current.startOfDay(for: expense.date)
+            }
+            
+            for (date, dayExpenses) in grouped {
+                for category in ExpenseCategory.allCases {
+                    let amount = dayExpenses
+                        .filter { $0.category == category }
+                        .reduce(0) { $0 + $1.amount }
+                    if amount > 0 {
+                        result.append(DailyExpense(date: date, category: category, amount: amount))
+                    }
+                }
+            }
+            return result.sorted { $0.date < $1.date }
+        }
+        
+            // 轉換後的每日分類資料
         let grouped = Dictionary(grouping: filteredExpenses) { expense in
             Calendar.current.startOfDay(for: expense.date)
         }
         
-            // 每個日期、每個分類計算總額
         for (date, dayExpenses) in grouped {
             for category in ExpenseCategory.allCases {
                 let amount = dayExpenses
                     .filter { $0.category == category }
-                    .reduce(0) { $0 + $1.amount }
+                    .reduce(0) { sum, expense in
+                        let exchangeRate = Double(trip.exchangeRates[expense.currency] ?? 1.0)
+                        return sum + (expense.amount * exchangeRate)
+                    }
                 if amount > 0 {
                     result.append(DailyExpense(date: date, category: category, amount: amount))
                 }
@@ -65,32 +115,55 @@ struct StatisticsView: View {
     }
     
     var body: some View {
-        ScrollView {
+        if trips.isEmpty {
             VStack(spacing: 20) {
-                    // MARK: - 行程篩選
-                tripPicker
+                Image(systemName: "suitcase")
+                    .font(.system(size: 60))
+                    .foregroundColor(.gray)
                 
-                    // MARK: - 總覽卡片
-                summaryCard
+                Text("沒有行程")
+                    .font(.headline)
                 
-                    // MARK: - 分類圖表
-                if !categoryData.isEmpty {
-                    categoryChart
+                Text("請先新增行程來開始記錄費用")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.background)
+        } else {
+            ScrollView {
+                VStack(spacing: 20) {
+                        // MARK: - 行程篩選
+                    tripPicker
+                    
+                        // MARK: - 總覽卡片
+                    summaryCard
+                    
+                        // MARK: - 分類圖表
+                    if !categoryData.isEmpty {
+                        categoryChart
+                    }
+                    
+                        // MARK: - 每日支出圖表（堆疊）
+                    if !dailyCategoryData.isEmpty {
+                        dailyStackedChart
+                    }
+                    
+                        // MARK: - 分類明細
+                    if !categoryData.isEmpty {
+                        categoryDetail
+                    }
                 }
-                
-                    // MARK: - 每日支出圖表（堆疊）
-                if !dailyCategoryData.isEmpty {
-                    dailyStackedChart
-                }
-                
-                    // MARK: - 分類明細
-                if !categoryData.isEmpty {
-                    categoryDetail
+                .padding()
+            }
+            .navigationTitle("統計")
+            .onAppear {
+                    // ✅ 進入時自動選擇第一個行程
+                if selectedTrip == nil && !trips.isEmpty {
+                    selectedTrip = trips.first
                 }
             }
-            .padding()
         }
-        .navigationTitle("統計")
     }
     
         // MARK: - 行程篩選器
@@ -99,17 +172,21 @@ struct StatisticsView: View {
             Text("篩選行程")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            
-            Picker("選擇行程", selection: $selectedTrip) {
-                Text("全部行程").tag(nil as Trip?)
-                ForEach(trips) { trip in
-                    Text(trip.name.isEmpty ? "未命名行程" : trip.name).tag(trip as Trip?)
+            if !trips.isEmpty {
+                Picker("選擇行程", selection: Binding(
+                    get: { selectedTrip ?? trips.first },
+                    set: { selectedTrip = $0 }
+                )) {
+                    ForEach(trips) { trip in
+                        Text(trip.name.isEmpty ? "未命名行程" : trip.name)
+                            .tag(trip as Trip?)
+                    }
                 }
+                .pickerStyle(.menu)
+                .padding(12)
+                .background(.gray.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .pickerStyle(.menu)
-            .padding(12)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
     
@@ -120,8 +197,14 @@ struct StatisticsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             
-            Text(formatAmount(totalAmount) + " 元")
-                .font(.system(size: 36, weight: .bold))
+                // ✅ 修復 2：顯示幣別
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(formatAmount(totalAmount))
+                    .font(.system(size: 36, weight: .bold))
+                Text(primaryCurrency)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
             
             Text("共 \(filteredExpenses.count) 筆費用")
                 .font(.caption)
@@ -129,7 +212,7 @@ struct StatisticsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
-        .background(Color(.systemGray6))
+        .background(.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
@@ -154,7 +237,7 @@ struct StatisticsView: View {
             legendView
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
@@ -200,7 +283,7 @@ struct StatisticsView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
@@ -234,7 +317,8 @@ struct StatisticsView: View {
                     
                     Spacer()
                     
-                    Text(formatAmount(item.amount) + " 元")
+                        // ✅ 修復 3：分類明細也顯示幣別
+                    Text(formatAmount(item.amount) + " " + primaryCurrency)
                         .fontWeight(.medium)
                     
                     Text(formatPercentage(item.amount))
@@ -250,7 +334,7 @@ struct StatisticsView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
@@ -285,13 +369,16 @@ struct DailyExpense: Identifiable {
         startDate: Date(),
         endDate: Date().addingTimeInterval(86400 * 5)
     )
+        // ✅ 設置匯率
+    trip.exchangeRates["USD"] = 100
+    trip.primaryCurrency = "JPY"
+    
     container.mainContext.insert(trip)
     
     let expenses = [
-        Expense(amount: 3500, currency: "TWD", date: Date(), storeName: "高鐵", trip: trip, category: .transport),
-        Expense(amount: 1200, currency: "TWD", date: Date(), storeName: "午餐", trip: trip, category: .food),
-        Expense(amount: 4500, currency: "TWD", date: Date().addingTimeInterval(-86400), storeName: "飯店", trip: trip, category: .lodging),
-        Expense(amount: 300, currency: "TWD", date: Date().addingTimeInterval(-86400), storeName: "漫遊", trip: trip, category: .telecom)
+        Expense(amount: 600, currency: "USD", date: Date(), storeName: "China Airlines", trip: trip, category: .transport),
+        Expense(amount: 12000, currency: "JPY", date: Date(), storeName: "Shinjuku Hotel", trip: trip, category: .lodging),
+        Expense(amount: 8000, currency: "JPY", date: Date().addingTimeInterval(-86400), storeName: "餐廳", trip: trip, category: .food),
     ]
     expenses.forEach { container.mainContext.insert($0) }
     

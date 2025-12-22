@@ -21,6 +21,13 @@ struct AddTripView: View {
     @State private var budgetString: String = ""
     @State private var notes: String = ""
     
+    @State private var primaryCurrency: String = "TWD"
+    @State private var exchangeRates: [String: Double] = [:]
+    @State private var showingExchangeRateManager = false
+    
+        // 常用貨幣列表
+    private let currencies = Constants.Currency.all
+    
         // ✅ 修正驗證：只比較日期，忽略時間
     private var isValid: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -74,6 +81,32 @@ struct AddTripView: View {
                     Text("選填，可用於追蹤支出進度")
                 }
                 
+                    // 🔴 MARK: - 貨幣設置（新增）
+                Section {
+                    Picker("主貨幣", selection: $primaryCurrency) {
+                        ForEach(currencies, id: \.self) { currency in
+                            Text(currency).tag(currency)
+                        }
+                    }
+                    
+                    HStack {
+                        Text("匯率設置")
+                        Spacer()
+                        Text("\(exchangeRates.count) 個已設置")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        Button(action: { showingExchangeRateManager = true }) {
+                            Image(systemName: "pencil.circle.fill")
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                } header: {
+                    Text("貨幣設置")
+                } footer: {
+                    Text("選擇主貨幣，設置各貨幣匯率用於自動轉換統計")
+                }
+                
                     // MARK: - 備註（選填）
                 Section("備註") {
                     TextField("備註（選填）", text: $notes, axis: .vertical)
@@ -96,6 +129,17 @@ struct AddTripView: View {
                     .disabled(!isValid)
                 }
             }
+            
+                // 🔴 新增：匯率管理 Sheet
+            .sheet(isPresented: $showingExchangeRateManager) {
+                ExchangeRateManager(
+                    primaryCurrency: primaryCurrency,
+                    exchangeRates: exchangeRates
+                ) { rates in
+                    exchangeRates = rates
+                    showingExchangeRateManager = false
+                }
+            }
         }
     }
     
@@ -114,8 +158,14 @@ struct AddTripView: View {
             startDate: normalizedStart,
             endDate: normalizedEnd,
             totalBudget: budget,
-            notes: notes.isEmpty ? nil : notes
+            notes: notes.isEmpty ? nil : notes,
+            primaryCurrency: primaryCurrency,
+            exchangeRates: exchangeRates
         )
+        
+        print("✅ 行程已建立: \(trip.name)")
+        print("💱 主貨幣: \(trip.primaryCurrency)")
+        print("📊 匯率: \(trip.exchangeRates)")
         
         modelContext.insert(trip)
         dismiss()

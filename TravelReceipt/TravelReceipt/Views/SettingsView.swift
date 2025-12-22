@@ -22,7 +22,7 @@ struct SettingsView: View {
     @State private var seedNeedsConfirm = false
     
         // 常用貨幣
-    private let currencies = ["TWD", "CNY", "JPY", "USD", "EUR", "HKD", "KRW"]
+    private let currencies = Constants.Currency.all
     
     var body: some View {
         List {
@@ -166,7 +166,7 @@ struct ExportView: View {
                     Label("產生 CSV", systemImage: "square.and.arrow.up")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(.blue)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
@@ -203,7 +203,7 @@ struct ExportView: View {
             let category = expense.category.displayName
             let store = expense.storeName ?? ""
             let amount = String(format: "%.0f", expense.amount)
-            let currency = expense.currency ?? "TWD"
+            let currency = expense.currency
             let tripName = expense.trip?.name ?? ""
             let notes = expense.notes ?? ""
             

@@ -12,7 +12,7 @@ import SwiftData
 final class Expense {
     var id: UUID = UUID()
     var amount: Double = 0.0
-    var currency: String?
+    var currency: String = "TWD"
     var date: Date = Date()
     var notes: String? = nil
     var createdAt: Date = Date()
