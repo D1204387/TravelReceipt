@@ -25,11 +25,9 @@ struct AddExpenseView: View {
     @State private var photoManager = ReceiptPhotoManager()
 
         // 收據圖片
-//    @State private var receiptImage: UIImage? = nil
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var showingPhotoSource = false
-//    @State private var receiptImageData: Data? = nil
     
         // ✅ OCR 相關
     @State private var isProcessingOCR = false
