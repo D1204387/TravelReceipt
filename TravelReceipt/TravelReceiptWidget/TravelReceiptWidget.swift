@@ -7,6 +7,7 @@
 
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 // MARK: - Timeline Entry
 struct TripEntry: TimelineEntry {
@@ -71,7 +72,7 @@ struct SmallWidgetView: View {
     var body: some View {
         if let trip = entry.tripData {
             VStack(alignment: .leading, spacing: 8) {
-                // 頂部：行程圖標和名稱
+                // 頂部：行程圖標和名稱 + 重新整理按鈕
                 HStack(spacing: 6) {
                     Image(systemName: "airplane.departure")
                         .font(.system(size: 14, weight: .semibold))
@@ -80,6 +81,16 @@ struct SmallWidgetView: View {
                     Text(trip.name.isEmpty ? "未命名行程" : trip.name)
                         .font(.system(size: 14, weight: .semibold))
                         .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    // 重新整理按鈕
+                    Button(intent: RefreshWidgetIntent()) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
                 
                 if let destination = trip.destination, !destination.isEmpty {
@@ -124,9 +135,12 @@ struct SmallWidgetView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                 
-                Text("開啟 App 新增")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
+                // 重新整理按鈕
+                Button(intent: RefreshWidgetIntent()) {
+                    Label("重新整理", systemImage: "arrow.clockwise")
+                        .font(.system(size: 10))
+                }
+                .buttonStyle(.plain)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -161,6 +175,14 @@ struct MediumWidgetView: View {
                     }
                     
                     Spacer()
+                    
+                    // 重新整理按鈕
+                    Button(intent: RefreshWidgetIntent()) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                     
                     // 日期範圍
                     Text(formatDateRange(start: trip.startDate, end: trip.endDate))
@@ -268,6 +290,14 @@ struct LargeWidgetView: View {
                     }
                     
                     Spacer()
+                    
+                    // 重新整理按鈕
+                    Button(intent: RefreshWidgetIntent()) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                     
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(formatDateRange(start: trip.startDate, end: trip.endDate))
