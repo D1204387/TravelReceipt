@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import CloudKit
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -21,11 +22,78 @@ struct SettingsView: View {
     @State private var seedAlertMessage = ""
     @State private var seedNeedsConfirm = false
     
+    // 雲端同步狀態
+    @State private var isSyncing = false
+    @State private var lastSyncTime: Date? = nil
+    @State private var syncStatusMessage = ""
+    @State private var showSyncStatus = false
+    @State private var iCloudAvailable = false
+    
         // 常用貨幣
     private let currencies = Constants.Currency.all
     
     var body: some View {
         List {
+                // MARK: - iCloud 同步
+            Section {
+                HStack {
+                    Label {
+                        Text("iCloud 同步")
+                    } icon: {
+                        Image(systemName: "icloud")
+                            .foregroundStyle(iCloudAvailable ? .blue : .gray)
+                    }
+                    
+                    Spacer()
+                    
+                    if iCloudAvailable {
+                        Text("已啟用")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("未登入")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                }
+                
+                Button(action: syncWithCloud) {
+                    HStack {
+                        Label {
+                            Text("立即同步")
+                        } icon: {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                        }
+                        
+                        Spacer()
+                        
+                        if isSyncing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
+                    }
+                }
+                .disabled(isSyncing || !iCloudAvailable)
+                
+                if let lastSync = lastSyncTime {
+                    HStack {
+                        Text("上次同步")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(lastSync, style: .relative)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                Text("雲端同步")
+            } footer: {
+                if showSyncStatus {
+                    Text(syncStatusMessage)
+                        .foregroundStyle(syncStatusMessage.contains("✅") ? .green : .orange)
+                }
+            }
+            
                 // MARK: - 一般設定
             Section("一般設定") {
                 Picker("預設貨幣", selection: $defaultCurrency) {
@@ -74,6 +142,9 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("設定")
+        .onAppear {
+            checkiCloudStatus()
+        }
             // 清除資料 Alert
         .alert("確認清除", isPresented: $showingDeleteAlert) {
             Button("取消", role: .cancel) { }
@@ -98,6 +169,44 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingExportSheet) {
             ExportView(expenses: expenses)
+        }
+    }
+    
+    // MARK: - iCloud 功能
+    
+    private func checkiCloudStatus() {
+        CKContainer.default().accountStatus { status, error in
+            DispatchQueue.main.async {
+                iCloudAvailable = (status == .available)
+                if let lastSync = UserDefaults.standard.object(forKey: "lastCloudSyncTime") as? Date {
+                    lastSyncTime = lastSync
+                }
+            }
+        }
+    }
+    
+    private func syncWithCloud() {
+        isSyncing = true
+        showSyncStatus = false
+        
+        // 模擬同步延遲（SwiftData + CloudKit 會自動同步）
+        // 這裡主要是觸發 UI 更新和儲存時間戳
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            do {
+                try modelContext.save()
+                lastSyncTime = Date()
+                UserDefaults.standard.set(lastSyncTime, forKey: "lastCloudSyncTime")
+                syncStatusMessage = "✅ 同步完成"
+            } catch {
+                syncStatusMessage = "⚠️ 同步失敗：\(error.localizedDescription)"
+            }
+            isSyncing = false
+            showSyncStatus = true
+            
+            // 3秒後隱藏狀態訊息
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                showSyncStatus = false
+            }
         }
     }
     

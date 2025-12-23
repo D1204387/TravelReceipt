@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 import WidgetKit
+import CloudKit
 
 @main
 struct TravelReceiptApp: App {
@@ -17,7 +18,13 @@ struct TravelReceiptApp: App {
     
     var modelContainer: ModelContainer = {
         do {
-            return try ModelContainer(for: Trip.self, Expense.self)
+            // 啟用 CloudKit 同步
+            let schema = Schema([Trip.self, Expense.self])
+            let config = ModelConfiguration(
+                schema: schema,
+                cloudKitDatabase: .private("iCloud.com.buildwithharry.TravelReceipt")
+            )
+            return try ModelContainer(for: schema, configurations: [config])
         } catch {
             print("❌ ModelContainer creation failed: \(error)")
             fatalError("Could not create ModelContainer: \(error)")
