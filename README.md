@@ -282,7 +282,7 @@ let request = VNRecognizeTextRequest { request, error in
 
 | 姓名 | 學號 | 負責項目 |
 |------|------|----------|
-| YiJou | XXXXXXXX | 全端開發 |
+| YiJou | D1204387 | 全端開發 |
 
 ---
 
