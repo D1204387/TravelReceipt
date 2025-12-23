@@ -1,171 +1,304 @@
-# TravelReceipt - 出差費用記帳應用
+# 旅行記帳 TravelReceipt
 
-## 📌 概述
+> iOS 旅遊支出管理應用程式
 
-一個簡單的 iOS 應用，用於記錄和管理個人出差期間的費用開支。用戶可以建立出差行程、添加費用、查看統計圖表，並透過 CloudKit 進行多設備同步。
+## 📋 專案概述
 
-## 🎯 主要功能
+TravelReceipt 是一款專為旅行者設計的 iOS 應用程式，協助使用者在旅途中輕鬆記錄、管理及分析支出。透過智慧掃描發票功能與多幣別支援，讓旅行財務管理變得簡單直覺。
 
-- ✅ 建立和管理出差行程
-- ✅ 添加和分類費用（交通、住宿、餐飲、雜支）
-- ✅ 查看費用統計圖表（圓餅圖）
-- ✅ 拍照保存費用憑證
-- ✅ CloudKit 多設備同步
-- ✅ 刪除出差時自動刪除相關費用
+---
 
-## 🔧 技術
+## 🎯 開發動機與目標
 
-| 技術 | 用途 |
-|------|------|
-| SwiftUI | UI 框架 |
-| SwiftData | 本地數據存儲 |
-| CloudKit | 多設備同步 |
-| SwiftCharts | 統計圖表 |
-| PhotosUI | 照片選取 |
+### 問題分析
+- 旅行時常會累積大量收據，難以整理
+- 跨國旅行涉及多種貨幣換算，計算繁瑣
+- 事後統計支出費時費力
 
-**為什麼這些選擇？**
-- SwiftUI：iOS 17+ 推薦，代碼簡潔
-- SwiftData：比 CoreData 更易用
-- CloudKit：無需後端，免費同步
-- MVVM 架構：職責清晰，易於測試
+### 解決方案
+本專案開發一款整合型旅遊記帳 App，提供：
+- 即時記錄支出
+- 自動掃描辨識發票
+- 多幣別自動換算
+- 圖表化統計分析
 
-## 📁 項目結構
+---
+
+## 🛠️ 使用技術
+
+### 開發環境
+| 項目 | 版本/規格 |
+|------|-----------|
+| 開發工具 | Xcode 15+ |
+| 程式語言 | Swift 5.9 |
+| 最低支援版本 | iOS 17.0 |
+| 專案類型 | SwiftUI App |
+
+### 核心框架
+
+| 框架名稱 | 用途說明 |
+|----------|----------|
+| **SwiftUI** | 宣告式 UI 框架，建構使用者介面 |
+| **SwiftData** | 資料持久化框架，管理本地資料庫 |
+| **CloudKit** | iCloud 雲端同步服務 |
+| **WidgetKit** | 主畫面小工具開發 |
+| **Vision** | OCR 文字辨識（發票掃描） |
+| **Charts** | 資料視覺化圖表 |
+
+### 第三方套件
+
+| 套件名稱 | 用途說明 |
+|----------|----------|
+| **SwiftDate** | 日期計算與格式化工具 |
+
+---
+
+## 📱 功能特色
+
+### 1. 行程管理
+- 建立/編輯/刪除旅行行程
+- 分段顯示：進行中、即將開始、已結束
+- 搜尋功能：依名稱或目的地搜尋
+
+### 2. 支出記錄
+- 快速新增支出項目
+- 8 種分類：餐飲、交通、住宿、通信、雜支等
+- 支援附加收據照片
+
+### 3. 智能掃描
+- OCR 自動辨識發票金額
+- 自動擷取商家名稱
+- 台灣電子發票 QR Code 解析
+
+### 4. 多幣別支援
+- 支援 TWD、USD、JPY、EUR、CNY 等貨幣
+- 自訂匯率設定
+- 自動換算統計
+
+### 5. 統計分析
+- 圓餅圖顯示支出分布
+- 日均支出計算
+- CSV 匯出功能
+
+### 6. 雲端同步
+- iCloud 即時同步
+- 多裝置資料一致
+
+### 7. 主畫面小工具
+- 三種尺寸：小、中、大
+- 即時顯示行程統計
+- 互動式重新整理按鈕
+
+---
+
+## 🏗️ 系統架構
 
 ```
 TravelReceipt/
-├── Models/              # 數據模型
-│   ├── Trip.swift
-│   ├── Expense.swift
-│   └── ExpenseCategory.swift
-├── ViewModels/          # 業務邏輯
-├── Views/               # UI 視圖
-├── Services/            # 數據服務
-└── TravelReceiptApp.swift
+├── Models/                 # 資料模型
+│   ├── Trip.swift          # 行程模型
+│   ├── Expense.swift       # 支出模型
+│   ├── ExpenseCategory.swift
+│   └── SharedTripData.swift
+│
+├── Views/                  # 視圖層
+│   ├── ContentView.swift   # 主視圖
+│   ├── TripListView.swift  # 行程列表
+│   ├── TripDetailView.swift
+│   ├── AddTripView.swift
+│   ├── AddExpenseView.swift
+│   ├── StatisticsView.swift
+│   └── SettingsView.swift
+│
+├── Components/             # 可重用元件
+│   ├── OCRService.swift    # OCR 服務
+│   ├── ImagePicker.swift
+│   └── ReceiptPhotoManager.swift
+│
+├── Scanner/                # 掃描功能
+│   ├── ReceiptScannerView.swift
+│   └── ScanResult.swift
+│
+├── Parser/                 # 文字解析
+│   └── ReceiptTextParser.swift
+│
+├── Utils/                  # 工具類
+│   └── Double+Format.swift
+│
+└── TravelReceiptWidget/    # Widget 擴展
+    ├── TravelReceiptWidget.swift
+    ├── SharedTripData.swift
+    └── RefreshIntent.swift
 ```
 
-## 📋 數據模型
+---
 
-**Trip（出差行程）**
-- id, name, startDate, endDate, location
-- expenses（相關費用列表）
-- 計算屬性：tripDays（天數）、totalExpense（總費用）
+## 📊 資料模型設計
 
-**Expense（費用單據）**
-- id, amount, category, description, date
-- receiptImage（憑證圖片）
-- trip（關聯的出差）
+### Trip（行程）
+```swift
+@Model
+class Trip {
+    var id: UUID
+    var name: String
+    var destination: String?
+    var startDate: Date
+    var endDate: Date
+    var totalBudget: Double?
+    var primaryCurrency: String
+    var exchangeRates: [String: Double]
+    @Relationship var expenses: [Expense]?
+}
+```
 
-**ExpenseCategory（分類）**
-- transport（交通）
-- accommodation（住宿）
-- food（餐飲）
-- miscellaneous（雜支）
+### Expense（支出）
+```swift
+@Model
+class Expense {
+    var id: UUID
+    var amount: Double
+    var currency: String
+    var date: Date
+    var storeName: String?
+    var category: ExpenseCategory
+    var receiptImage: Data?
+    @Relationship var trip: Trip?
+}
+```
 
-## 🚀 如何使用
+---
 
-1. 克隆項目
+## 🔧 關鍵技術實作
+
+### 1. SwiftData + CloudKit 同步
+```swift
+let config = ModelConfiguration(
+    schema: schema,
+    cloudKitDatabase: .private("iCloud.com.app.TravelReceipt")
+)
+let container = try ModelContainer(for: schema, configurations: [config])
+```
+
+### 2. App Groups 資料共享
+主 App 與 Widget 透過共享容器交換資料：
+```swift
+let containerURL = FileManager.default.containerURL(
+    forSecurityApplicationGroupIdentifier: "group.com.app.TravelReceipt"
+)
+```
+
+### 3. Widget 互動按鈕 (App Intents)
+```swift
+struct RefreshWidgetIntent: AppIntent {
+    func perform() async throws -> some IntentResult {
+        WidgetCenter.shared.reloadAllTimelines()
+        return .result()
+    }
+}
+```
+
+### 4. OCR 文字辨識 (Vision)
+```swift
+let request = VNRecognizeTextRequest { request, error in
+    let observations = request.results as? [VNRecognizedTextObservation]
+    // 處理辨識結果
+}
+```
+
+---
+
+## 📸 應用程式截圖
+
+| 行程列表 | 支出明細 | 統計圖表 | 小工具 |
+|:--------:|:--------:|:--------:|:------:|
+| 分段顯示 | 分類記錄 | 圓餅圖 | 三種尺寸 |
+
+---
+
+## 🚀 安裝與執行
+
+### 環境需求
+- macOS 14.0+
+- Xcode 15.0+
+- iOS 17.0+ 裝置或模擬器
+- Apple Developer 帳號（iCloud 功能需要）
+
+### 建置步驟
+1. Clone 專案
    ```bash
-   git clone https://github.com/yourname/TravelReceipt.git
+   git clone https://github.com/your-repo/TravelReceipt.git
    ```
 
-2. 用 Xcode 打開
+2. 開啟專案
    ```bash
    open TravelReceipt.xcodeproj
    ```
 
-3. 配置 CloudKit
-   - 選擇項目 → Signing & Capabilities
-   - 點擊「+ Capability」→ iCloud
-   - 勾選 CloudKit
+3. 設定簽署
+   - 選擇您的 Team
+   - 確認 Bundle Identifier
 
-4. 運行
-   - 選擇 iOS 17+ 模擬器
-   - 按 Cmd + R 運行
-
-## 💻 功能流程
-
-**添加出差**
-```
-點擊 + → AddTripView → 輸入信息 → 保存 → 顯示在列表
-```
-
-**添加費用**
-```
-進入出差 → 點擊添加費用 → 輸入金額和分類 → 拍照 → 保存
-```
-
-**查看統計**
-```
-切換到統計標籤 → 自動生成圓餅圖 → 顯示費用占比和總額
-```
-
-**多設備同步**
-```
-本地修改 → SwiftData 保存 → CloudKit 自動同步 → 其他設備自動更新
-```
-
-## 🏗️ 架構設計
-
-使用 **MVVM 架構**：
-- **Models**：數據結構（Trip、Expense）
-- **ViewModels**：業務邏輯（計算、驗證）
-- **Views**：UI 視圖（展示數據）
-- **Services**：數據操作（CRUD、同步）
-
-好處：
-- 職責清晰
-- 易於測試
-- 易於維護
-
-## 📸 主要畫面
-
-1. **行程列表** - 展示所有出差，顯示天數和總費用
-2. **行程詳情** - 顯示該出差的所有費用
-3. **添加費用** - 表單輸入費用信息和拍照
-4. **統計圖表** - 圓餅圖展示費用分類占比
-5. **設置** - 應用設置
-
-## 🔄 核心功能實現
-
-**CRUD 操作**
-- 創建：點擊 + 按鈕，填寫信息保存
-- 讀取：列表自動加載所有數據
-- 更新：點擊編輯修改信息
-- 刪除：滑動或點擊刪除，級聯刪除相關費用
-
-**費用分類**
-- 用戶選擇分類（交通/住宿/餐飲/雜支）
-- 不同分類顯示不同顏色圖標
-
-**統計計算**
-- 所有費用按分類分組
-- 計算每個分類的金額和占比
-- SwiftCharts 繪製圓餅圖
-
-**雲端同步**
-- SwiftData 本地保存
-- CloudKit 自動上傳到 iCloud
-- 其他設備自動同步
-
-## ⚠️ 已知限制
-
-- 無 OCR 自動分類（未來可能添加）
-- 無 PDF 匯出（可能的加分項）
-- 無數字簽名功能
-
-## 👨‍💻 開發者
-
-**名字**: 陳憶柔  
-**課程**: iOS 應用開發  
-**完成日期**: 2025 年 12 月
-
-## 📚 參考資源
-
-- [Apple SwiftUI 官方教程](https://developer.apple.com/tutorials/swiftui)
-- [SwiftData 文檔](https://developer.apple.com/documentation/swiftdata)
-- [CloudKit 文檔](https://developer.apple.com/icloud/cloudkit/)
+4. 執行
+   - 選擇目標裝置
+   - 按下 Run (⌘R)
 
 ---
 
-**版本**: 1.0.0  
-**許可證**: MIT
+## 📝 開發心得與困難
+
+### 遇到的挑戰
+
+1. **SwiftData + CloudKit 整合**
+   - 需要正確設定 iCloud Container 和 App Groups
+   - 同步機制需要時間理解
+
+2. **Widget 資料共享**
+   - Widget 無法直接存取主 App 資料庫
+   - 透過 App Groups 共享容器解決
+
+3. **OCR 辨識準確度**
+   - 不同格式發票辨識率差異大
+   - 需要針對常見格式優化解析邏輯
+
+### 學習收穫
+- 深入理解 SwiftUI 宣告式程式設計
+- 掌握 SwiftData 資料持久化技術
+- 了解 iOS Extension 開發模式
+- 實作 CloudKit 雲端同步
+
+---
+
+## 🔮 未來展望
+
+- [ ] 加入預算警示通知
+- [ ] 支援更多貨幣即時匯率 API
+- [ ] 整合系統行事曆 (EventKit)
+- [ ] 加入行程地圖標記
+- [ ] Apple Watch 版本
+
+---
+
+## 👥 開發團隊
+
+| 姓名 | 學號 | 負責項目 |
+|------|------|----------|
+| YiJou | XXXXXXXX | 全端開發 |
+
+---
+
+## 📄 授權條款
+
+本專案僅供學術研究使用。
+
+---
+
+## 📚 參考資料
+
+1. [Apple Developer Documentation - SwiftUI](https://developer.apple.com/documentation/swiftui)
+2. [Apple Developer Documentation - SwiftData](https://developer.apple.com/documentation/swiftdata)
+3. [Apple Developer Documentation - WidgetKit](https://developer.apple.com/documentation/widgetkit)
+4. [SwiftDate GitHub Repository](https://github.com/malcommac/SwiftDate)
+
+---
+
+*最後更新：2025 年 12 月*
