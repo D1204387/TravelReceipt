@@ -268,6 +268,19 @@ struct AddExpenseView: View {
             print("✅ 已填入商家: \(storeName)")
         }
         
+        // 🆕 自動分類推薦
+        let classification = CategoryClassifier.classify(
+            storeName: result.storeName,
+            rawText: result.rawText
+        )
+        category = classification.category
+        
+        if let keyword = classification.matchedKeyword {
+            print("🏷️ 自動分類: \(category.displayName) (匹配關鍵字: \(keyword), 信心度: \(String(format: "%.0f%%", classification.confidence * 100)))")
+        } else {
+            print("🏷️ 自動分類: \(category.displayName) (預設)")
+        }
+        
         print("✅ 套用完成\n")
     }
 

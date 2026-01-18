@@ -47,7 +47,7 @@ struct TravelReceiptApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .onAppear {
                     // 初次啟動時同步資料
                     syncWidgetData()

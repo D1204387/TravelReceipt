@@ -1,0 +1,105 @@
+/* 
+  Localizable.strings (English)
+  TravelReceipt
+  
+  English localization for UI strings
+*/
+
+// MARK: - Tab Bar
+"tab.trips" = "Trips";
+"tab.statistics" = "Stats";
+"tab.settings" = "Settings";
+
+// MARK: - Trip List
+"trips.title" = "TravelReceipt";
+"trips.empty.title" = "Start Your First Trip";
+"trips.empty.subtitle" = "Tap + in the top right to add a trip";
+"trips.section.ongoing" = "Ongoing";
+"trips.section.upcoming" = "Upcoming";
+"trips.section.completed" = "Completed";
+
+// MARK: - Add Trip
+"addTrip.title" = "New Trip";
+"addTrip.name" = "Trip Name";
+"addTrip.destination" = "Destination";
+"addTrip.startDate" = "Start Date";
+"addTrip.endDate" = "End Date";
+"addTrip.budget" = "Budget";
+"addTrip.currency" = "Primary Currency";
+
+// MARK: - Add Expense
+"addExpense.title" = "Add Expense";
+"addExpense.amount" = "Enter Amount";
+"addExpense.currency" = "Currency";
+"addExpense.category" = "Category";
+"addExpense.date" = "Date";
+"addExpense.store" = "Store Name";
+"addExpense.notes" = "Notes (Optional)";
+"addExpense.photo" = "Receipt Photo";
+"addExpense.scan" = "AI Scan";
+"addExpense.scanning" = "Scanning...";
+
+// MARK: - Categories
+"category.transport" = "Transport";
+"category.lodging" = "Lodging";
+"category.food" = "Food & Dining";
+"category.telecom" = "Telecom";
+"category.shopping" = "Shopping";
+"category.entertainment" = "Entertainment";
+"category.attraction" = "Attractions";
+"category.miscellaneous" = "Others";
+
+// MARK: - Statistics
+"stats.title" = "Statistics";
+"stats.totalExpense" = "Total Expenses";
+"stats.dailyAverage" = "Daily Average";
+"stats.expenseCount" = "Transactions";
+"stats.categoryBreakdown" = "By Category";
+
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.sync" = "iCloud Sync";
+"settings.syncNow" = "Sync Now";
+"settings.lastSync" = "Last Synced";
+"settings.defaultCurrency" = "Default Currency";
+"settings.dataStats" = "Data Summary";
+"settings.tripCount" = "Trips";
+"settings.expenseCount" = "Expenses";
+"settings.dataManagement" = "Data Management";
+"settings.export" = "Export CSV";
+"settings.sampleData" = "Load Sample Data";
+"settings.deleteAll" = "Delete All Data";
+"settings.about" = "About";
+"settings.privacy" = "Privacy Policy";
+"settings.terms" = "Terms of Service";
+
+// MARK: - Common
+"common.save" = "Save";
+"common.cancel" = "Cancel";
+"common.delete" = "Delete";
+"common.edit" = "Edit";
+"common.done" = "Done";
+"common.confirm" = "Confirm";
+"common.enabled" = "Enabled";
+"common.disabled" = "Not Signed In";
+
+// MARK: - Alerts
+"alert.deleteConfirm.title" = "Confirm Deletion";
+"alert.deleteConfirm.message" = "Are you sure you want to delete all trips and expenses? This cannot be undone.";
+"alert.syncComplete" = "✅ Sync Complete";
+"alert.syncFailed" = "⚠️ Sync Failed";
+
+// MARK: - Onboarding
+"onboarding.welcome.title" = "Welcome to TravelReceipt";
+"onboarding.welcome.subtitle" = "Your Travel Finance Companion";
+"onboarding.trips.title" = "Trip Management";
+"onboarding.trips.subtitle" = "Organize Your Journeys";
+"onboarding.scan.title" = "Smart Scanning";
+"onboarding.scan.subtitle" = "AI-Powered Receipt Recognition";
+"onboarding.currency.title" = "Multi-Currency";
+"onboarding.currency.subtitle" = "Travel Without Boundaries";
+"onboarding.stats.title" = "Visual Analytics";
+"onboarding.stats.subtitle" = "Track Every Expense";
+"onboarding.start" = "Get Started";
+"onboarding.skip" = "Skip";
+"onboarding.next" = "Next";

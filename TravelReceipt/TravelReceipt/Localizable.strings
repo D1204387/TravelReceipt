@@ -1,0 +1,105 @@
+/* 
+  Localizable.strings (繁體中文 - 預設)
+  TravelReceipt
+  
+  主要介面文字的在地化字串
+*/
+
+// MARK: - Tab Bar
+"tab.trips" = "行程";
+"tab.statistics" = "統計";
+"tab.settings" = "設定";
+
+// MARK: - Trip List
+"trips.title" = "旅遊記帳";
+"trips.empty.title" = "開始您的第一趟旅程";
+"trips.empty.subtitle" = "點擊右上角的 + 來新增行程";
+"trips.section.ongoing" = "進行中";
+"trips.section.upcoming" = "即將開始";
+"trips.section.completed" = "已結束";
+
+// MARK: - Add Trip
+"addTrip.title" = "新增行程";
+"addTrip.name" = "行程名稱";
+"addTrip.destination" = "目的地";
+"addTrip.startDate" = "開始日期";
+"addTrip.endDate" = "結束日期";
+"addTrip.budget" = "預算";
+"addTrip.currency" = "主要貨幣";
+
+// MARK: - Add Expense
+"addExpense.title" = "新增費用";
+"addExpense.amount" = "輸入金額";
+"addExpense.currency" = "貨幣";
+"addExpense.category" = "分類";
+"addExpense.date" = "日期";
+"addExpense.store" = "商家名稱";
+"addExpense.notes" = "備註（選填）";
+"addExpense.photo" = "收據照片";
+"addExpense.scan" = "AI 辨識";
+"addExpense.scanning" = "辨識中...";
+
+// MARK: - Categories
+"category.transport" = "交通";
+"category.lodging" = "住宿";
+"category.food" = "餐飲";
+"category.telecom" = "通信";
+"category.shopping" = "購物";
+"category.entertainment" = "娛樂";
+"category.attraction" = "景點";
+"category.miscellaneous" = "雜支";
+
+// MARK: - Statistics
+"stats.title" = "統計";
+"stats.totalExpense" = "總支出";
+"stats.dailyAverage" = "日均支出";
+"stats.expenseCount" = "費用筆數";
+"stats.categoryBreakdown" = "分類統計";
+
+// MARK: - Settings
+"settings.title" = "設定";
+"settings.sync" = "iCloud 同步";
+"settings.syncNow" = "立即同步";
+"settings.lastSync" = "上次同步";
+"settings.defaultCurrency" = "預設貨幣";
+"settings.dataStats" = "資料統計";
+"settings.tripCount" = "行程數量";
+"settings.expenseCount" = "費用數量";
+"settings.dataManagement" = "資料管理";
+"settings.export" = "匯出 CSV";
+"settings.sampleData" = "載入範例資料";
+"settings.deleteAll" = "清除所有資料";
+"settings.about" = "關於";
+"settings.privacy" = "隱私政策";
+"settings.terms" = "使用條款";
+
+// MARK: - Common
+"common.save" = "儲存";
+"common.cancel" = "取消";
+"common.delete" = "刪除";
+"common.edit" = "編輯";
+"common.done" = "完成";
+"common.confirm" = "確認";
+"common.enabled" = "已啟用";
+"common.disabled" = "未登入";
+
+// MARK: - Alerts
+"alert.deleteConfirm.title" = "確認清除";
+"alert.deleteConfirm.message" = "確定要清除所有行程和費用資料嗎？此操作無法復原。";
+"alert.syncComplete" = "✅ 同步完成";
+"alert.syncFailed" = "⚠️ 同步失敗";
+
+// MARK: - Onboarding
+"onboarding.welcome.title" = "歡迎使用 TravelReceipt";
+"onboarding.welcome.subtitle" = "您的旅途財務小幫手";
+"onboarding.trips.title" = "行程管理";
+"onboarding.trips.subtitle" = "一目了然的行程規劃";
+"onboarding.scan.title" = "智能掃描";
+"onboarding.scan.subtitle" = "AI 自動辨識發票";
+"onboarding.currency.title" = "多幣別支援";
+"onboarding.currency.subtitle" = "跨國旅遊無煩惱";
+"onboarding.stats.title" = "視覺化統計";
+"onboarding.stats.subtitle" = "掌握每一筆支出";
+"onboarding.start" = "開始使用";
+"onboarding.skip" = "跳過";
+"onboarding.next" = "下一步";

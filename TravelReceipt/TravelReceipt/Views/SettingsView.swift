@@ -140,6 +140,27 @@ struct SettingsView: View {
             } footer: {
                 Text("清除後無法復原，請謹慎操作")
             }
+            
+            // MARK: - 關於與法律
+            Section("關於") {
+                NavigationLink {
+                    AboutView()
+                } label: {
+                    Label("關於 TravelReceipt", systemImage: "info.circle")
+                }
+                
+                NavigationLink {
+                    PrivacyPolicyView()
+                } label: {
+                    Label("隱私政策", systemImage: "hand.raised")
+                }
+                
+                NavigationLink {
+                    TermsOfServiceView()
+                } label: {
+                    Label("使用條款", systemImage: "doc.text")
+                }
+            }
         }
         .navigationTitle("設定")
         .onAppear {
